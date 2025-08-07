@@ -20,6 +20,7 @@ const Writing: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState('screenplay-files');
   const [project, setProject] = useState<Project | null>(null);
+  const [projectLoading, setProjectLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const { screenplays, loading, error, loadScreenplayDetails } = useScreenplays(projectId || '');
   const [loadingScreenplayId, setLoadingScreenplayId] = useState<string | null>(null);
@@ -201,6 +202,7 @@ const Writing: React.FC = () => {
       if (!projectId) return;
 
       try {
+        setProjectLoading(true);
         const projectRef = doc(db, 'projects', projectId);
         const projectSnap = await getDoc(projectRef);
 
@@ -210,6 +212,8 @@ const Writing: React.FC = () => {
         }
       } catch (err) {
         console.error('Error fetching project data:', err);
+      } finally {
+        setProjectLoading(false);
       }
     };
 
@@ -220,6 +224,7 @@ const Writing: React.FC = () => {
   console.log('Writing component state:', {
     projectId,
     project,
+    projectLoading,
     activeTab,
     screenplaysCount: screenplays?.length || 0,
     loading,
@@ -246,7 +251,7 @@ const Writing: React.FC = () => {
     );
   }
 
-  if (loading && !project) {
+  if (projectLoading) {
     console.log('Writing: Showing loading state for project data');
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F5F5F2] dark:bg-gray-800">
