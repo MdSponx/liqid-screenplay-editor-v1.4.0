@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket CORS Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 5px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>WebSocket CORS Test for Y.js Server</h1>
+    <p>This test verifies that the WebSocket server accepts connections from browser origins (CORS).</p>
+    
+    <button onclick="testConnection()">Test WebSocket Connection</button>
+    <button onclick="clearLog()">Clear Log</button>
+    
+    <div id="status"></div>
+    <div id="log"></div>
+
+    <script>
+        let ws = null;
+        const statusDiv = document.getElementById('status');
+        const logDiv = document.getElementById('log');
+
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.textContent += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function setStatus(message, type) {
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function clearLog() {
+            logDiv.textContent = '';
+            statusDiv.innerHTML = '';
+        }
+
+        function testConnection() {
+            log('Starting WebSocket connection test...');
+            setStatus('Connecting to WebSocket server...', 'info');
+
+            try {
+                // Connect to the Y.js WebSocket server
+                ws = new WebSocket('ws://localhost:1234/test-document');
+
+                ws.onopen = function(event) {
+                    log('✅ WebSocket connection established successfully!');
+                    log('✅ CORS configuration is working properly from browser');
+                    setStatus('Connection successful! CORS is properly configured.', 'success');
+                    
+                    // Test will automatically receive Y.js sync messages
+                    log('Waiting for Y.js sync messages...');
+                };
+
+                ws.onmessage = function(event) {
+                    log(`📨 Received message from server: ${event.data.byteLength || event.data.length} bytes`);
+                };
+
+                ws.onclose = function(event) {
+                    log(`🔌 WebSocket connection closed: Code ${event.code}, Reason: ${event.reason || 'Normal closure'}`);
+                    if (event.code === 1000) {
+                        setStatus('Connection closed normally. Test completed successfully!', 'success');
+                    }
+                };
+
+                ws.onerror = function(error) {
+                    log('❌ WebSocket connection failed');
+                    log('❌ Error details: ' + error.toString());
+                    setStatus('Connection failed! This indicates a CORS or server issue.', 'error');
+                };
+
+                // Close connection after 3 seconds for testing
+                setTimeout(() => {
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        log('Closing connection after successful test...');
+                        ws.close(1000, 'Test completed');
+                    }
+                }, 3000);
+
+            } catch (error) {
+                log('❌ Failed to create WebSocket connection: ' + error.message);
+                setStatus('Failed to create WebSocket connection: ' + error.message, 'error');
+            }
+        }
+
+        // Auto-run test when page loads
+        window.onload = function() {
+            log('Page loaded. Ready to test WebSocket connection.');
+            log('Click "Test WebSocket Connection" to verify CORS configuration.');
+        };
+    </script>
+</body>
+</html>
