@@ -23,3 +23,10 @@ dist-ssr
 *.sln
 *.sw?
 .env
+github-version/
+update-source/
+node_modules/
+.env
+*.log
+firebase-service-account-key.json
+liqid-dd431-firebase-adminsdk-fbsvc-5cce920bc9.json
