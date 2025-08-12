@@ -70,7 +70,7 @@ const Page: React.FC<PageProps> = ({
     >
       <PageHeader
         isDarkMode={isDarkMode}
-        header={header}
+        header={header.title}
         pageNumber={pageIndex + 1}
         editingHeader={editingHeader}
         onHeaderChange={onHeaderChange}
